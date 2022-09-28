@@ -52,7 +52,7 @@
     response => {
       // 根据后端数据判断登录状态
       if (response.data.code === 0 && response.data.msg === 'not logged in') {
-        window.top.location.href = '/backend/page/login/login.html'
+        window.top.location.replace('/backend/page/login/login.html')
       } else {
         return response.data
       }

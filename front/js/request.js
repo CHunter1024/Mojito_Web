@@ -53,7 +53,7 @@
       // 根据后端数据判断登录状态
       if (response.data.code === 0 && response.data.msg === 'not logged in') {
         window.requestAnimationFrame(() => {
-          window.top.location.href = '/front/page/login.html'
+          window.top.location.replace('/front/page/login.html')
         })
       } else {
         return response.data
