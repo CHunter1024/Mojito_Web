@@ -3,10 +3,9 @@
   // 创建axios实例
   const service = axios.create({
     // axios中请求配置有baseURL选项，表示请求URL公共部分
-    baseURL: '/front',
+    baseURL: '/api/front',
     // 超时
-    // timeout: 10000
-    timeout: 100000000
+    timeout: 10000
   })
 
   // 请求拦截器

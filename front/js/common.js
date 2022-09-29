@@ -13,6 +13,6 @@ function getUrlParam(argName) {
 
 // 获取文件 Url
 const getFileUrl = (fileName, subDir, defaultUrl) => {
-    let url = `/common/download?fileName=${fileName}`
+    let url = `/api/common/download?fileName=${fileName}`
     return fileName ? (subDir ? `${url}&subDir=${subDir}` : url) : defaultUrl
 }
