@@ -1,4 +1,4 @@
-// 响应式布局，不同屏幕尺寸根字体设置
+// 响应式布局，根据不同屏幕尺寸设置字体大小
 (function (doc, win) {
     let docEl = doc.documentElement
     let resizeEvt = 'orientationchange' in window ? 'orientationchange' : 'resize'
