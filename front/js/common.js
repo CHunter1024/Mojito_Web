@@ -13,6 +13,6 @@ function getUrlParam(argName) {
 
 // 获取文件 Url
 const getFileUrl = (fileName, subDir, defaultUrl) => {
-    let url = `/api/common/download?fileName=${fileName}`
+    let url = `http://127.0.0.1:8080/common/download?fileName=${fileName}`
     return fileName ? (subDir ? `${url}&subDir=${subDir}` : url) : defaultUrl
 }
