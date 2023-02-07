@@ -97,6 +97,7 @@
           pageSize: 10,
           counts: 0,
           categoryList: [],
+          categoryMap: new Map(),
           tableData: [],
           categoryIds: [],
           checkList: []
@@ -126,12 +127,7 @@
               this.tableData = res.data.records
               // 匹配套餐分类名称
               this.tableData.forEach(data => {
-                for (let category of this.categoryList) {
-                  if (data.categoryId === category.value) {
-                    data.categoryName = category.text
-                    break;
-                  }
-                }
+                data.categoryName = this.categoryMap.get(data.categoryId)
               })
               this.counts = res.data.total
             } else {
@@ -145,6 +141,7 @@
           getCategoryList({type: 1}).then(res => {
             if (res.code === 1) {
               this.categoryList = res.data.map(category => {
+                this.categoryMap.set(category.id, category.name)
                 return {text: category.name, value: category.id}
               })
             } else {
