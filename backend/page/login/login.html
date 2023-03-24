@@ -62,7 +62,7 @@
   <script src="../../plugins/axios/axios.min.js"></script>
   <script src="../../js/request.js"></script>
   <script src="../../js/validate.js"></script>
-  <script src="../../api/user.js"></script>
+  <script src="../../api/employee.js"></script>
   <script>
     new Vue({
       el: '#login-app',
@@ -86,18 +86,18 @@
       created() {},
       methods: {
         async handleLogin() {
+          this.loading = true
           this.$refs.loginForm.validate(async (valid) => {
             if (valid) {
-              this.loading = true
-              let res = await loginApi(this.loginForm)
-              if (res.code === 1) {
-                delete res.data.password  // 删除密码属性
-                localStorage.setItem('backendUserInfo', JSON.stringify(res.data))  // 储存到浏览器本地，始终有效
+              loginApi(this.loginForm).then(res => {
                 window.location.href= '/backend/index.html'
-              } else {
-                this.$message.error(res.msg)
+              }).catch(error => {
+                this.$message.error(error.message)
                 this.loading = false
-              }
+              })
+            } else{
+              this.loading = false
+              return false
             }
           })
         }

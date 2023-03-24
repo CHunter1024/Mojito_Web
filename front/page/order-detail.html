@@ -143,14 +143,12 @@
         initData() {
           this.id = getUrlParam("id")
           getOrderApi(this.id).then(res => {
-            if (res.code === 1) {
-              this.order = res.data
-              let address = this.order.address
-              this.address = address
-              this.address.district = address.provinceName + address.cityName + address.districtName
-            } else {
-              this.$notify({type: 'danger', message: res.msg})
-            }
+            this.order = res.data
+            let address = this.order.address
+            this.address = address
+            this.address.district = address.provinceName + address.cityName + address.districtName
+          }).catch(error => {
+            this.$notify({type: 'danger', message: error.message})
           })
         },
 
@@ -229,13 +227,11 @@
         // 再来一单
         addOrderAgain() {
           addOrderAgainApi({id: this.order.id}).then(res => {
-            if (res.code === 1) {
-              window.requestAnimationFrame(() => {
-                window.location.href = '/front/index.html'
-              })
-            } else {
-              this.$toast(res.msg)
-            }
+            window.requestAnimationFrame(() => {
+              window.location.href = '/front/index.html'
+            })
+          }).catch(error => {
+            this.$toast(error.message)
           })
         },
 

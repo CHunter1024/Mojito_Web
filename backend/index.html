@@ -127,7 +127,7 @@
           </el-form>
           <span slot="footer" class="dialog-footer">
             <el-button size="medium" @click="dialogVisible=false">取消</el-button>
-            <el-button type="primary" size="medium" @click="submitForm">保存</el-button>
+            <el-button type="primary" size="medium" @click="submitForm" :disabled="submitting">保存</el-button>
           </span>
         </el-dialog>
         <div class="app-main" v-loading="loading">
@@ -154,7 +154,7 @@
   <script src="plugins/axios/axios.min.js"></script>
   <script src="js/request.js"></script>
   <script src="js/validate.js"></script>
-  <script src="api/user.js"></script>
+  <script src="api/employee.js"></script>
   <script>
     new Vue({
       el: '#app',
@@ -172,18 +172,18 @@
             confirmPassword: ''
           },
           menuInfo: {
-            defAct: '2',
-            menuActive: '2',
-            iframeUrl: 'page/category/list.html',
-            headTitle: '分类管理',
+            defAct: '',
+            menuActive: '',
+            iframeUrl: '',
+            headTitle: '',
             goBackFlag: false
           },
           menuList: [
             {
               id: '1',
               name: '员工管理',
-              url: 'page/member/list.html',
-              icon: 'icon-member'
+              url: 'page/employee/list.html',
+              icon: 'icon-employee'
             },
             {
               id: '2',
@@ -212,6 +212,7 @@
           ],
           dialogTitle: '',
           dialogVisible: false,
+          submitting: false,
           loading: true,
           timer: null
         }
@@ -225,14 +226,12 @@
               callback(new Error('请输入正确的手机号码'))
             } else if (this.srcPhoneNumber !== value) {
               exist('phone_number', value).then(res => {
-                if (res.code === 1) {
-                  if (res.data) {
-                    callback(new Error('该手机号码已被注册'))
-                  } else {
-                    callback()
-                  }
+                if (res.data) {
+                  callback(new Error('该手机号码已被注册'))
+                } else {
+                  callback()
                 }
-              })
+              }).catch(() => {})
             } else {
               callback()
             }
@@ -260,19 +259,7 @@
         }
       },
       created() {
-        const userInfo = window.localStorage.getItem('backendUserInfo')
-        if (userInfo) {
-          this.userInfo = JSON.parse(userInfo)
-        }
-        const menuInfo = window.sessionStorage.getItem('menuInfo')
-        if (menuInfo) {
-          this.menuInfo = JSON.parse(menuInfo)
-        } else if (this.userInfo.role === 1) {
-          this.menuInfo.defAct = '1'
-          this.menuInfo.menuActive = '1'
-          this.menuInfo.iframeUrl = 'page/member/list.html'
-          this.menuInfo.headTitle = '员工管理'
-        }
+        this.init()
         this.closeLoading()
       },
       mounted() {
@@ -286,30 +273,54 @@
         clearTimeout(this.timer)
       },
       methods: {
-        logout() {
-          logoutApi().then((res) => {
-            if (res.code === 1) {
-              localStorage.removeItem('backendUserInfo')
-              sessionStorage.clear()
-              window.location.href = '/backend/page/login/login.html'
-            } else {
-              this.$message.error(res.msg)
-            }
+        init() {
+          // 获取当前用户信息
+          getCurrEmpApi().then(res => {
+            this.userInfo = res.data
+            this.getMenuInfo()
+          }).catch(error => {
+            this.$message.error(error.message)
           })
         },
+        // 获取导航栏信息
+        getMenuInfo() {
+          const menuInfo = sessionStorage.getItem('menuInfo')
+          if (menuInfo) {
+            this.menuInfo = JSON.parse(menuInfo)
+          } else {
+            let menu = this.userInfo.role === 1 ? this.menuList[0] : this.menuList[1]
+            this.menuInfo.defAct = menu.id
+            this.menuInfo.menuActive = menu.id
+            this.menuInfo.iframeUrl = menu.url
+            this.menuInfo.headTitle = menu.name
+          }
+        },
+        // 注销
+        logout() {
+          logoutApi().then(res => {
+            sessionStorage.clear()
+            this.toLoginPage()
+          }).catch(error => {
+            this.$message.error(error.message)
+          })
+        },
+        toLoginPage() {
+          window.top.location.replace('/backend/page/login/login.html')
+        },
+
         goBack() {
           const menu = this.menuList.find(item=>item.id===this.menuInfo.menuActive)  // 查找当前激活的窗口
           this.menuHandle(menu,false)
         },
         menuHandle(item, goBackFlag) {
-          sessionStorage.clear()  // 切换菜单选项时清除页面的配置缓存
+          sessionStorage.removeItem("pageInfo")  // 移除页面信息缓存
           this.loading = true
           this.menuInfo.menuActive = item.id
           this.menuInfo.iframeUrl = item.url
           this.menuInfo.headTitle = item.name
           this.menuInfo.goBackFlag = goBackFlag
           this.closeLoading()
-          // 储存到浏览器本地，仅对当前窗口有效
+          // 缓存导航栏，仅对当前窗口有效
           sessionStorage.setItem('menuInfo',JSON.stringify({
             ...this.menuInfo,
             defAct: this.menuInfo.menuActive
@@ -339,25 +350,26 @@
           }
         },
         submitForm() {
+          this.submitting = true
           let formName = this.dialogTitle === '个人信息' ? 'empForm' : 'pwForm'
           this.$refs[formName].validate((valid) => {
             if (valid) {
               const params = this.dialogTitle === '个人信息' ?
                       {...this.empForm, sex: this.empForm.sex === '女' ? 0 : 1} :
                       {oldPassword: this.pwForm.oldPassword, password: this.pwForm.newPassword}
-              editUser(params).then(res => {
-                if (res.code === 1) {
-                  this.$message.success('修改成功')
-                  this.dialogVisible = false
-                  if (this.dialogTitle === '个人信息') {
-                    this.userInfo = params
-                    localStorage.setItem('backendUserInfo', JSON.stringify(this.userInfo))  // 更新放在浏览器中的用户信息
-                  }
-                } else {
-                  this.$message.error(res.msg)
+              editCurrEmpApi(params).then(res => {
+                this.$message.success('修改成功')
+                this.dialogVisible = false
+                if (this.dialogTitle === '个人信息') {
+                  this.userInfo = params
                 }
+                this.submitting = false
+              }).catch(error => {
+                this.$message.error(error.message)
+                this.submitting = false
               })
             } else {
+              this.submitting = false
               return false
             }
           })

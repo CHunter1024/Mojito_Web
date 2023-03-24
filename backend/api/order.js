@@ -1,16 +1,18 @@
-// 分页查询订单信息
-const getOrderPage = (params) => {
+const orderApi = '/order'
+
+// 分页+条件查询订单信息
+const getOrderPageApi = (params) => {
   return $axios({
-    url: '/order/page',
+    url: `${orderApi}/page`,
     method: 'get',
     params
   })
 }
 
-// 修改订单
-const editOrder = (data) => {
+// 修改订单信息
+const editOrderApi = (data) => {
   return $axios({
-    url: '/order',
+    url: `${orderApi}`,
     method: 'put',
     data
   })

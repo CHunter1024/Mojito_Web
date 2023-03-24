@@ -1,37 +1,52 @@
-// 登出
-function logoutApi() {
-    return $axios({
-        url: '/user/logout',
-        method: 'post'
-    })
-}
+const userApi = '/user'
 
-// 文件上传
-function upload(file) {
-    // 文件上传需要以表单的形式发送
-    const data = new FormData()
-    data.append("file", file)  // 这里一定要双引号
+// 用户登录
+function loginApi(data) {
     return $axios({
-        url: '/common/upload',
+        url: `${userApi}/login`,
         method: 'post',
-        headers: {'Content-Type': 'multipart/form-data'},
         data
     })
 }
 
-// 修改用户信息
-function editUserInfo(data) {
+// 用户登出
+function logoutApi() {
     return $axios({
-        url: '/user',
+        url: `${userApi}/logout`,
+        method: 'post'
+    })
+}
+
+// 查询用户是否已登录
+function isLoginApi() {
+    return $axios({
+        url: `${userApi}/isLogin`,
+        method: 'get'
+    })
+}
+
+// 查询用户信息
+function getUserApi() {
+    return $axios({
+        url: `${userApi}`,
+        method: 'get',
+        headers: {'Cache-Control': 'no-cache'}
+    })
+}
+
+// 修改用户信息
+function editUserApi(data) {
+    return $axios({
+        url: `${userApi}`,
         method: 'put',
         data
     })
 }
 
-// 更新用户邮箱
-function UpdateUserEmail(data) {
+// 修改用户邮箱
+function editUserEmailApi(data) {
     return $axios({
-        url: '/user/email',
+        url: `${userApi}/email`,
         method: 'put',
         data
     })

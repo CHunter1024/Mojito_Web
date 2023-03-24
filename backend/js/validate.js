@@ -23,14 +23,12 @@ function checkAccount(rule, value, callback) {
     callback(new Error('帐号需字母开头，长度5-16，允许字母数字下划线'))
   } else {
     exist('account', value).then(res => {
-      if (res.code === 1) {
-        if (res.data) {
-          callback(new Error('帐号已存在'))
-        } else {
-          callback()
-        }
+      if (res.data) {
+        callback(new Error('帐号已存在'))
+      } else {
+        callback()
       }
-    })
+    }).catch(error => {})
   }
 }
 // 校验密码
@@ -51,14 +49,12 @@ function checkPhoneNumber(rule, value, callback) {
     callback(new Error('请输入正确的手机号码'))
   } else {
     exist('phone_number', value).then(res => {
-      if (res.code === 1) {
-        if (res.data) {
-          callback(new Error('该手机号码已被注册'))
-        } else {
-          callback()
-        }
+      if (res.data) {
+        callback(new Error('该手机号码已被注册'))
+      } else {
+        callback()
       }
-    })
+    }).catch(() => {})
   }
 }
 // 校验姓名

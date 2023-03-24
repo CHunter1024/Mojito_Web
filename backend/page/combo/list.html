@@ -86,7 +86,7 @@
   <script src="../../plugins/axios/axios.min.js"></script>
   <script src="../../js/request.js"></script>
   <script src="../../js/common.js"></script>
-  <script src="../../api/commodity.js"></script>
+  <script src="../../api/category.js"></script>
   <script src="../../api/combo.js"></script>
   <script>
     new Vue({
@@ -105,13 +105,7 @@
         }
       },
       created() {
-        let pageInfo = window.sessionStorage.getItem("pageInfo")
-        if (pageInfo) {
-          pageInfo = JSON.parse(pageInfo)
-          this.input = pageInfo.input
-          this.page = pageInfo.page
-          this.pageSize = pageInfo.pageSize
-        }
+        this.getPageInfo()
         this.getCategories()
         this.init()
       },
@@ -123,31 +117,27 @@
             name: this.input ? this.input : undefined,
             categoryIds: this.categoryIds.length ? this.categoryIds : undefined,
           }
-          getComboPage(params).then(res => {
-            if (res.code === 1) {
-              this.tableData = res.data.records
-              // 匹配套餐分类名称
-              this.tableData.forEach(data => {
-                data.categoryName = this.categoryMap.get(data.categoryId)
-              })
-              this.counts = res.data.total
-            } else {
-              this.$message.error(res.msg)
-            }
+          getComboPageApi(params).then(res => {
+            this.tableData = res.data.records
+            // 匹配套餐分类名称
+            this.tableData.forEach(data => {
+              data.categoryName = this.categoryMap.get(data.categoryId)
+            })
+            this.counts = res.data.total
+          }).catch(error => {
+            this.$message.error(error.message)
           })
         },
 
         // 获取套餐分类信息
         getCategories() {
-          getCategoryList({type: 1}).then(res => {
-            if (res.code === 1) {
-              this.categoryList = res.data.map(category => {
-                this.categoryMap.set(category.id, category.name)
-                return {text: category.name, value: category.id}
-              })
-            } else {
-              this.$message.error(res.msg)
-            }
+          getCategoryListApi({type: 1}).then(res => {
+            this.categoryList = res.data.map(category => {
+              this.categoryMap.set(category.id, category.name)
+              return {text: category.name, value: category.id}
+            })
+          }).catch(error => {
+            this.$message.error(error.message)
           })
         },
         // 获取图片文件
@@ -197,16 +187,13 @@
             cancelButtonText: '取消',
             type: 'warning'
           }).then(() => {
-            deleteCombo(type === 'batch' ? this.checkList : [id]).then(res => {
-              if (res.code === 1) {
-                this.$message.success('删除成功！')
-                this.handleDeleteSuccess(type)
-              } else {
-                this.$message.error(`${res.msg}，删除失败`)
-              }
+            deleteComboApi(type === 'batch' ? this.checkList : [id]).then(res => {
+              this.$message.success('删除成功！')
+              this.handleDeleteSuccess(type)
+            }).catch(error => {
+              this.$message.error(`${error.message}，删除失败`)
             })
-          }).catch(() => {
-          })
+          }).catch(() => {})
         },
         //状态更改
         statusHandle(row) {
@@ -227,16 +214,13 @@
             cancelButtonText: '取消',
             type: 'warning'
           }).then(() => {
-            updateComboStatus(params).then(res => {
-              if (res.code === 1) {
-                this.$message.success('套餐状态更改成功！')
-                this.handleQuery()
-              } else {
-                this.$message.error(`${res.msg}，更改失败`)
-              }
+            editComboStatusApi(params).then(res => {
+              this.$message.success('套餐状态更改成功！')
+              this.handleQuery()
+            }).catch(error => {
+              this.$message.error(`${error.message}，更改失败`)
             })
-          }).catch(() => {
-          })
+          }).catch(() => {})
         },
 
         handleQuery() {
@@ -265,6 +249,15 @@
             page: this.page,
             pageSize: this.pageSize
           }))
+        },
+        getPageInfo() {
+          let pageInfo = sessionStorage.getItem("pageInfo")
+          if (pageInfo) {
+            pageInfo = JSON.parse(pageInfo)
+            this.input = pageInfo.input
+            this.page = pageInfo.page
+            this.pageSize = pageInfo.pageSize
+          }
         }
       }
     })

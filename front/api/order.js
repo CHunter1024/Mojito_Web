@@ -1,43 +1,37 @@
+const orderApi = '/order'
+
 // 提交订单
 function addOrderApi(data) {
     return $axios({
-        url: '/order',
+        url: `${orderApi}`,
         method: 'post',
         data
     })
 }
 
-// 分页查询订单
-function getOrderPage(params) {
+// 分页查询订单信息
+function getOrderPageApi(params) {
     return $axios({
-        url: '/order/page',
+        url: `${orderApi}/page`,
         method: 'get',
         params,
         headers: {'Cache-Control': 'no-cache'}
     })
 }
 
-//查询所有订单
-function orderListApi() {
-  return $axios({
-    'url': '/order/list',
-    'method': 'get',
-  })
-}
-
 // 再来一单
 function addOrderAgainApi(data) {
   return $axios({
-      url: '/order/again',
+      url: `${orderApi}/again`,
       method: 'post',
       data
   })
 }
 
-// 获取单个订单
+// 根据id查询订单信息
 function getOrderApi(id) {
     return $axios({
-        url: `/order/${id}`,
+        url: `${orderApi}/${id}`,
         method: 'get'
     })
 }
@@ -45,7 +39,7 @@ function getOrderApi(id) {
 // 删除订单
 function deleteOrderApi(id) {
     return $axios({
-        url: `/order/${id}`,
+        url: `${orderApi}/${id}`,
         method: 'delete'
     })
 }

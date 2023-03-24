@@ -51,16 +51,19 @@
   // 响应拦截器
   service.interceptors.response.use(
     response => {
-      // 根据后端数据判断登录状态
-      if (response.data.code === 0 && response.data.msg === 'not logged in') {
-        window.requestAnimationFrame(() => {
+      const res = response.data
+      if (res.code !== 20000) {
+        // 未登录
+        if (res.code === 40001) {
           window.top.location.replace('/front/page/login.html')
-        })
+        }
+        return Promise.reject(res)
       } else {
-        return response.data
+        return res
       }
     },
     error => {
+      console.log(error) // for debug
       let { message } = error
       if (message === "Network Error") {
         message = "后端接口连接异常"
@@ -69,12 +72,9 @@
       } else if (message.includes("Request failed with status code")) {
         message = "系统接口" + message.substr(message.length - 3) + "异常";
       }
-      window.vant.Notify({
-        message: message,
-        type: 'danger'
-      })
+      error.message = message
       return Promise.reject(error)
     }
   )
   win.$axios = service
-})(window);
+})(window)

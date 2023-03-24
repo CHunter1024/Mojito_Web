@@ -67,9 +67,9 @@
       </el-form>
       <span slot="footer" class="dialog-footer">
         <el-button size="medium" @click="dialogVisible=false">取消</el-button>
-        <el-button type="primary" size="medium" @click="submitForm('ruleForm',false)">保存</el-button>
+        <el-button type="primary" size="medium" @click="submitForm('ruleForm',false)" :disabled="submitting">保存</el-button>
         <el-button v-if="action=='add'" type="primary" size="medium" class="continue"
-                   @click="submitForm('ruleForm',true)">保存并继续添加</el-button>
+                   @click="submitForm('ruleForm',true)" :disabled="submitting">保存并继续添加</el-button>
       </span>
     </el-dialog>
   </div>
@@ -97,7 +97,8 @@
             name: '',
             type: '商品分类',
             sort: 1
-          }
+          },
+          submitting: false
         }
       },
       computed: {
@@ -109,12 +110,7 @@
         }
       },
       created() {
-        let pageInfo = window.sessionStorage.getItem("pageInfo")
-        if (pageInfo) {
-          pageInfo = JSON.parse(pageInfo)
-          this.page = pageInfo.page
-          this.pageSize = pageInfo.pageSize
-        }
+        this.getPageInfo()
         this.init()
       },
       methods: {
@@ -123,14 +119,12 @@
             page: this.page,
             pageSize: this.pageSize
           }
-          getCategoryPage(params).then(res => {
-            if (res.code === 1) {
-              this.tableData = res.data.records
-              this.counts = res.data.total
-              this.ruleForm.sort = this.counts + 1
-            } else {
-              this.$message.error(res.msg)
-            }
+          getCategoryPageApi(params).then(res => {
+            this.tableData = res.data.records
+            this.counts = res.data.total
+            this.ruleForm.sort = this.counts + 1
+          }).catch(error => {
+            this.$message.error(error.message)
           })
         },
          // 添加
@@ -155,19 +149,17 @@
             cancelButtonText: '取消',
             type: 'warning'
           }).then(() => {
-            deleteCategory(id).then(res => {
-              if (res.code === 1) {
-                this.$message.success('删除成功')
-                this.handleDeleteSuccess()
-              } else {
-                this.$message.error(`${res.msg}，删除失败`)
-              }
+            deleteCategoryApi(id).then(res => {
+              this.$message.success('删除成功')
+              this.handleDeleteSuccess()
+            }).catch(error => {
+              this.$message.error(`${error.message}，删除失败`)
             })
-          }).catch(() => {
-          })
+          }).catch(() => {})
         },
         // 数据提交
         submitForm(formName, keepOpen) {
+          this.submitting = true
           this.$refs[formName].validate((valid) => {
             if (valid) {
               const params = {
@@ -175,31 +167,32 @@
                 type: this.ruleForm.type === '商品分类' ? 0 : 1
               }
               if (this.action === 'add') {
-                addCategory(params).then(res => {
-                  if (res.code === 1) {
-                    this.$message.success('添加成功')
-                    if (keepOpen) {
-                      this.resetForm()
-                    } else {
-                      this.dialogVisible = false
-                    }
-                    this.init()
+                addCategoryApi(params).then(res => {
+                  this.$message.success('添加成功')
+                  if (keepOpen) {
+                    this.resetForm()
                   } else {
-                    this.$message.error(`${res.msg}，添加失败`)
+                    this.dialogVisible = false
                   }
+                  this.submitting = false
+                  this.init()
+                }).catch(error => {
+                  this.$message.error(`${error.message}，添加失败`)
+                    this.submitting = false
                 })
               } else {
-                editCategory(params).then(res => {
-                  if (res.code === 1) {
-                    this.$message.success('修改成功')
-                    this.dialogVisible = false
-                    this.init()
-                  } else {
-                    this.$message.error(`${res.msg}，修改失败`)
-                  }
+                editCategoryApi(params).then(res => {
+                  this.$message.success('修改成功')
+                  this.dialogVisible = false
+                  this.submitting = false
+                  this.init()
+                }).catch(error => {
+                  this.$message.error(`${error.message}，修改失败`)
+                  this.submitting = false
                 })
               }
             } else {
+              this.submitting = false
               return false
             }
           })
@@ -235,6 +228,14 @@
             page: this.page,
             pageSize: this.pageSize
           }))
+        },
+        getPageInfo() {
+          let pageInfo = sessionStorage.getItem("pageInfo")
+          if (pageInfo) {
+            pageInfo = JSON.parse(pageInfo)
+            this.page = pageInfo.page
+            this.pageSize = pageInfo.pageSize
+          }
         }
       }
     })
