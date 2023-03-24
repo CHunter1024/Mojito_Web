@@ -3,9 +3,11 @@
   // 创建axios实例
   const service = axios.create({
     // axios中请求配置有baseURL选项，表示请求URL公共部分
-    baseURL: '/api/backend',
+    baseURL: 'http://127.0.0.1:8080/backend',
+    // 跨域请求设置，发送Cookie和HTTP认证信息
+    withCredentials: true,
     // 超时
-    timeout: 10000
+    timeout: 100000000
   })
 
   // 请求拦截器
@@ -49,14 +51,19 @@
   // 响应拦截器
   service.interceptors.response.use(
     response => {
-      // 根据后端数据判断登录状态
-      if (response.data.code === 0 && response.data.msg === 'not logged in') {
-        window.top.location.replace('/backend/page/login/login.html')
+      const res = response.data
+      if (res.code !== 20000) {
+        // 未登录
+        if (res.code === 40001) {
+          window.top.location.replace('/backend/page/login/login.html')
+        }
+        return Promise.reject(res)
       } else {
-        return response.data
+        return res
       }
     },
     error => {
+      console.log(error)  // for debug
       let { message } = error
       if (message === "Network Error") {
         message = "后端接口连接异常"
@@ -65,12 +72,9 @@
       } else if (message.includes("Request failed with status code")) {
         message = "系统接口" + message.substr(message.length - 3) + "异常";
       }
-      window.ELEMENT.Message({
-        message: message,
-        type: 'error'
-      })
+      error.message = message
       return Promise.reject(error)
     }
   )
   win.$axios = service
-})(window);
+})(window)

@@ -1,69 +1,62 @@
-// 分页查询商品信息
-const getCommodityPage = (params) => {
+const commodityApi = '/commodity'
+
+// 分页+条件查询商品信息
+const getCommodityPageApi = (params) => {
   return $axios({
-    url: '/commodity/page',
+    url: `${commodityApi}/page`,
     method: 'get',
     params
   })
 }
 
 // 删除商品
-const deleteCommodity = (data) => {
+const deleteCommodityApi = (data) => {
   return $axios({
-    url: '/commodity',
+    url: `${commodityApi}`,
     method: 'delete',
     data
   })
 }
 
-// 修改商品
-const editCommodity = (data) => {
+// 修改商品信息
+const editCommodityApi = (data) => {
   return $axios({
-    url: '/commodity',
+    url: `${commodityApi}`,
     method: 'put',
     data
   })
 }
 
 // 新增商品
-const addCommodity = (data) => {
+const addCommodityApi = (data) => {
   return $axios({
-    url: '/commodity',
+    url: `${commodityApi}`,
     method: 'post',
     data
   })
 }
 
 // 根据id查询商品信息
-const getCommodityById = (id) => {
+const getCommodityByIdApi = (id) => {
   return $axios({
-    url: `/commodity/${id}`,
+    url: `${commodityApi}/${id}`,
     method: 'get'
   })
 }
 
-// 获取分类信息
-const getCategoryList = (params) => {
+// 条件查询商品信息
+const getCommodityListApi = (params) => {
   return $axios({
-    url: '/category/list',
-    method: 'get',
-    params
-  })
-}
-
-// 获取商品信息
-const getCommodityList = (params) => {
-  return $axios({
-    url: '/commodity/list',
+    url: `${commodityApi}/list`,
     method: 'get',
     params
   })
 }
 
 // 修改商品状态
-const updateCommodityStatus = (params) => {
+const editCommodityStatusApi = (params) => {
   return $axios({
-    url: `/commodity/${params.status}`,
+    url: `${commodityApi}/${params.status}`,
     method: 'put',
     data: params.ids
   })

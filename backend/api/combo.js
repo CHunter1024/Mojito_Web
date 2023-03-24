@@ -1,51 +1,53 @@
-// 分页查询套餐信息
-const getComboPage = (params) => {
+const comboApi = '/combo'
+
+// 分页+条件查询套餐信息
+const getComboPageApi = (params) => {
   return $axios({
-    url: '/combo/page',
+    url: `${comboApi}/page`,
     method: 'get',
     params
   })
 }
 
 // 删除套餐
-const deleteCombo = (data) => {
+const deleteComboApi = (data) => {
   return $axios({
-    url: '/combo',
+    url: `${comboApi}`,
     method: 'delete',
     data
   })
 }
 
-// 修改套餐
-const editCombo = (data) => {
+// 修改套餐信息
+const editComboApi = (data) => {
   return $axios({
-    url: '/combo',
+    url: `${comboApi}`,
     method: 'put',
     data
   })
 }
 
 // 新增套餐
-const addCombo = (data) => {
+const addComboApi = (data) => {
   return $axios({
-    url: '/combo',
+    url: `${comboApi}`,
     method: 'post',
     data
   })
 }
 
 // 根据id查询套餐信息
-const getComboById = (id) => {
+const getComboByIdApi = (id) => {
   return $axios({
-    url: `/combo/${id}`,
+    url: `${comboApi}/${id}`,
     method: 'get'
   })
 }
 
 // 修改套餐状态
-const updateComboStatus = (params) => {
+const editComboStatusApi = (params) => {
   return $axios({
-    url: `/combo/${params.status}`,
+    url: `${comboApi}/${params.status}`,
     method: 'put',
     data: params.ids
   })

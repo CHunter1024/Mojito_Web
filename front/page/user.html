@@ -86,32 +86,35 @@
         }
       },
       created() {
-        const userInfo = localStorage.getItem('frontUserInfo')
-        if (userInfo) {
-          this.userInfo = JSON.parse(userInfo)
-        }
-        this.getLatestOrder()
+        this.init()
       },
       methods: {
+        init() {
+          getUserApi().then(res => {
+            this.userInfo = res.data
+            this.getLatestOrder()
+          }).catch(error => {
+            this.$notify({type: 'danger', message: error.message})
+          })
+        },
+
         // 获取最新订单
         getLatestOrder() {
           const params = {page: 1, pageSize: 1}
-          getOrderPage(params).then(res => {
-            if (res.code === 1) {
-              const order = res.data.records[0]
-              if (order) {
-                // 统计订单商品数量
-                let goodsNum = 0
-                order.details.forEach(detail => goodsNum += detail.number)
-                order.goodsNum = goodsNum
-                // 根据商品Id去重
-                const set = new Set()
-                order.details = order.details.filter(detail => !set.has(detail.goodsId) && set.add(detail.goodsId))
-                this.order = order
-              }
-            } else {
-              this.$notify({type: 'danger', message: res.msg})
+          getOrderPageApi(params).then(res => {
+            const order = res.data.records[0]
+            if (order) {
+              // 统计订单商品数量
+              let goodsNum = 0
+              order.details.forEach(detail => goodsNum += detail.number)
+              order.goodsNum = goodsNum
+              // 根据商品Id去重
+              const set = new Set()
+              order.details = order.details.filter(detail => !set.has(detail.goodsId) && set.add(detail.goodsId))
+              this.order = order
             }
+          }).catch(error => {
+            this.$notify({type: 'danger', message: error.message})
           })
         },
         // 获取订单状态
@@ -143,15 +146,12 @@
         // 退出登录
         logout() {
           logoutApi().then((res) => {
-            if (res.code === 1) {
-              localStorage.removeItem("frontUserInfo")
-              localStorage.removeItem("orderAddress")
-              window.requestAnimationFrame(() => {
-                window.location.replace('/front/page/login.html')
-              })
-            } else {
-              this.$toast(res.msg)
-            }
+            sessionStorage.clear()
+            window.requestAnimationFrame(() => {
+              window.location.replace('/front/page/login.html')
+            })
+          }).catch(error => {
+            this.$toast(error.message)
           })
         },
 

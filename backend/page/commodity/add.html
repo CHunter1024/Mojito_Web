@@ -96,8 +96,8 @@
         <div class="subBox address">
           <el-form-item>
             <el-button @click="goBack">取消</el-button>
-            <el-button type="primary" @click="submitForm('ruleForm',false)">保存</el-button>
-            <el-button type="primary" class="continue" @click="submitForm('ruleForm',true)">保存并继续添加</el-button>
+            <el-button type="primary" @click="submitForm('ruleForm',false)" :disabled="submitting">保存</el-button>
+            <el-button type="primary" class="continue" @click="submitForm('ruleForm',true)" :disabled="submitting">保存并继续添加</el-button>
           </el-form-item>
         </div>
       </el-form>
@@ -111,6 +111,7 @@
   <script src="../../plugins/axios/axios.min.js"></script>
   <script src="../../js/request.js"></script>
   <script src="../../js/common.js"></script>
+  <script src="../../api/category.js"></script>
   <script src="../../api/commodity.js"></script>
   <script>
     new Vue({
@@ -129,6 +130,7 @@
             description: '',
             configs: []
           },
+          submitting: false
         }
       },
       computed: {
@@ -159,12 +161,10 @@
       methods: {
         // 获取商品分类
         getCategories() {
-          getCategoryList({type: 0}).then(res => {
-            if (res.code === 1) {
-              this.categoryList = res.data
-            } else {
-              this.$message.error(res.msg)
-            }
+          getCategoryListApi({type: 0}).then(res => {
+            this.categoryList = res.data
+          }).catch(error => {
+            this.$message.error(error.message)
           })
         },
 
@@ -200,6 +200,7 @@
 
         // 提交表单
         submitForm(formName, st) {
+          this.submitting = true
           this.$refs[formName].validate((valid) => {
             if (valid) {
               const params = {...this.ruleForm}
@@ -208,23 +209,24 @@
                 config.value = `[${config.value.toString()}]`  // 把配置标签数组转换为字符串形式
                 delete config.showOption  // 删除无关属性
               })
-              addCommodity(params).then(res => {
-                if (res.code === 1) {
-                  window.parent.$message.success('添加成功')
-                  if (!st) {
-                    this.goBack()
-                  } else {
-                    let currCategoryId = this.ruleForm.categoryId
-                    this.imageUrl = ''
-                    this.commodityConfigs = []
-                    this.$refs[formName].resetFields()
-                    this.ruleForm.categoryId = currCategoryId
-                  }
+              addCommodityApi(params).then(res => {
+                window.parent.$message.success('添加成功')
+                if (!st) {
+                  this.goBack()
                 } else {
-                  this.$message.error(`${res.msg}，添加失败`)
+                  let currCategoryId = this.ruleForm.categoryId
+                  this.imageUrl = ''
+                  this.commodityConfigs = []
+                  this.$refs[formName].resetFields()
+                  this.ruleForm.categoryId = currCategoryId
                 }
+                this.submitting = false
+              }).catch(error => {
+                this.$message.error(`${error.message}，添加失败`)
+                this.submitting = false
               })
             } else {
+              this.submitting = false
               return false
             }
           })
@@ -244,11 +246,11 @@
         },
         // 文件上传成功
         successUpload(res, file) {
-          if (res.code === 1) {
+          if (res.code === 20000) {
             this.imageUrl = URL.createObjectURL(file.raw)  // 赋值图片的url，用于图片回显功能
             this.ruleForm.image = res.data
           } else {
-            this.$message.error(`${res.msg}，图片上传失败`)
+            this.$message.error(`${res.message}，图片上传失败`)
           }
         },
 

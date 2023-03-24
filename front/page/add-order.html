@@ -88,7 +88,7 @@
   <script src="../plugins/axios/axios.min.js"></script>
   <script src="../js/request.js"></script>
   <script src="../js/common.js"></script>
-  <script src="../api/index.js"></script>
+  <script src="../api/shoppingCart.js"></script>
   <script src="../api/address.js"></script>
   <script src="../api/order.js"></script>
   <script>
@@ -119,25 +119,21 @@
       methods: {
         // 获取购物车数据
         getCartData() {
-          getCartApi().then(res => {
-            if (res.code === 1) {
-              this.cartData = res.data
-            } else {
-              this.$notify({type: 'danger', message: res.msg})
-            }
+          getShoppingCartApi().then(res => {
+            this.cartData = res.data
+          }).catch(error => {
+            this.$notify({type: 'danger', message: error.message})
           })
         },
         // 获取下单地址
         getOrderAddress() {
-          const orderAddress = localStorage.getItem('orderAddress')
+          const orderAddress = sessionStorage.getItem('orderAddress')
           if (orderAddress) {
             this.address = JSON.parse(orderAddress)
           } else {
             getOrderAddressApi().then(res => {
-              if (res.code === 1) {
-                this.address = res.data
-              }
-            })
+              this.address = res.data
+            }).catch(() => {})
           }
         },
         // 获取预计送达时间（目前时间 + 30分钟）
@@ -175,11 +171,9 @@
             addressBookId: this.address.id
           }
           addOrderApi(params).then(res => {
-            if (res.code === 1) {
-              this.toPaySuccessPage(res.data)
-            } else {
-              this.$toast.fail({forbidClick: true, message: res.msg})
-            }
+            this.toPaySuccessPage(res.data)
+          }).catch(error => {
+            this.$toast.fail({forbidClick: true, message: error.message})
           })
         },
 

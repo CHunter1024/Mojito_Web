@@ -60,12 +60,10 @@
       },
       methods: {
         initData() {
-          addressListApi().then(res => {
-            if (res.code === 1) {
-              this.addressList = res.data
-            } else {
-              this.$toast(res.msg)
-            }
+          getAddressListApi().then(res => {
+            this.addressList = res.data
+          }).catch(error => {
+            this.$toast(error.message)
           })
         },
 
@@ -74,7 +72,7 @@
           const url = document.referrer
           if (url.includes('page/add-order.html')) {
             // 表示是从提交订单页面跳转过来的
-            localStorage.setItem('orderAddress', JSON.stringify(item))
+            sessionStorage.setItem('orderAddress', JSON.stringify(item))
             this.goBack()
           }
         },
@@ -85,21 +83,19 @@
             id: item.id,
             isDefault: item.isDefault ? 0 : 1
           }
-          updateAddressApi(params).then(res => {
-            if (res.code === 1) {
-              // 如果是设置为默认地址，需要先将之前的默认地址改为非默认地址
-              if (params.isDefault) {
-                for (const address of this.addressList) {
-                  if (address.isDefault === 1) {
-                    address.isDefault = 0
-                    break
-                  }
+          editAddressApi(params).then(res => {
+            // 如果是设置为默认地址，需要先将之前的默认地址改为非默认地址
+            if (params.isDefault) {
+              for (const address of this.addressList) {
+                if (address.isDefault === 1) {
+                  address.isDefault = 0
+                  break
                 }
               }
-              item.isDefault = params.isDefault
-            } else {
-              this.$toast(res.msg)
             }
+            item.isDefault = params.isDefault
+          }).catch(error => {
+            this.$toast(error.message)
           })
         },
 

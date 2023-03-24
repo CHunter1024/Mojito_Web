@@ -171,15 +171,7 @@
         }
       },
       created() {
-        let pageInfo = window.sessionStorage.getItem("pageInfo")
-        if (pageInfo) {
-          pageInfo = JSON.parse(pageInfo)
-          this.page = pageInfo.page
-          this.pageSize = pageInfo.pageSize
-          this.input = pageInfo.input
-          this.orderTime = pageInfo.orderTime
-          this.getStartEndTime(this.orderTime)
-        }
+        this.getPageInfo()
         this.init()
       },
       methods: {
@@ -191,21 +183,19 @@
             beginTime: this.beginTime ? this.beginTime : undefined,
             endTime: this.endTime ? this.endTime : undefined
           }
-          getOrderPage(params).then(res => {
-            if (res.code === 1) {
-              const records = res.data.records
-              records.forEach(order => {
-                let goodsNum = 0
-                order.details.forEach(detail => goodsNum += detail.number)
-                order.goodsNum = goodsNum
-                let address = order.address
-                order.address.district = address.provinceName + address.cityName + address.districtName
-              })
-              this.tableData = records
-              this.counts = res.data.total
-            } else {
-              this.$message.error(res.msg)
-            }
+          getOrderPageApi(params).then(res => {
+            const records = res.data.records
+            records.forEach(order => {
+              let goodsNum = 0
+              order.details.forEach(detail => goodsNum += detail.number)
+              order.goodsNum = goodsNum
+              let address = order.address
+              order.address.district = address.provinceName + address.cityName + address.districtName
+            })
+            this.tableData = records
+            this.counts = res.data.total
+          }).catch(error => {
+            this.$message.error(error.message)
           })
         },
 
@@ -273,26 +263,23 @@
             cancelButtonText: '取消',
             type: 'warning'
           }).then(() => {
-            editOrder({id, status}).then(res => {
-              if (res.code === 1) {
-                switch (status) {
-                  case 3:
-                    this.$message.success('接单成功')
-                    break
-                  case 4:
-                    this.$message.success('派送成功')
-                    break
-                  case 5:
-                    this.$message.success('订单已完成')
-                    break
-                }
-                this.init()
-              } else {
-                this.$message.error(`${res.msg}，操作失败`)
+            editOrderApi({id, status}).then(res => {
+              switch (status) {
+                case 3:
+                  this.$message.success('接单成功')
+                  break
+                case 4:
+                  this.$message.success('派送成功')
+                  break
+                case 5:
+                  this.$message.success('订单已完成')
+                  break
               }
+              this.init()
+            }).catch(error => {
+              this.$message.error(`${error.message}，操作失败`)
             })
-          }).catch(() => {
-          })
+          }).catch(() => {})
         },
 
         handleQuery() {
@@ -315,6 +302,17 @@
             input: this.input,
             orderTime: this.orderTime
           }))
+        },
+        getPageInfo() {
+          let pageInfo = sessionStorage.getItem("pageInfo")
+          if (pageInfo) {
+            pageInfo = JSON.parse(pageInfo)
+            this.page = pageInfo.page
+            this.pageSize = pageInfo.pageSize
+            this.input = pageInfo.input
+            this.orderTime = pageInfo.orderTime
+            this.getStartEndTime(this.orderTime)
+          }
         }
       }
     })

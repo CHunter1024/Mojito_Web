@@ -11,7 +11,7 @@
   <link rel="stylesheet" href="../../styles/page.css"/>
 </head>
 <body>
-  <div class="addBrand-container" id="member-edit-app">
+  <div class="addBrand-container" id="employee-edit-app">
     <div class="container">
       <el-form
         ref="ruleForm"
@@ -45,7 +45,7 @@
         <div class="subBox address">
           <el-form-item>
             <el-button  @click="goBack">取消</el-button>
-            <el-button type="primary" @click="submitForm('ruleForm')">保存</el-button>
+            <el-button type="primary" @click="submitForm('ruleForm')" :disabled="submitting">保存</el-button>
           </el-form-item>
         </div>
       </el-form>
@@ -60,10 +60,10 @@
   <script src="../../js/request.js"></script>
   <script src="../../js/common.js"></script>
   <script src="../../js/validate.js"></script>
-  <script src="../../api/member.js"></script>
+  <script src="../../api/employee.js"></script>
   <script>
     new Vue({
-      el: '#member-edit-app',
+      el: '#employee-edit-app',
       data() {
         return {
           ruleForm: {
@@ -73,7 +73,8 @@
             username: '',
             sex: '男',
             role: false
-          }
+          },
+          submitting: false
         }
       },
       computed: {
@@ -85,14 +86,12 @@
               callback(new Error('帐号需字母开头，长度5-16，允许字母数字下划线'))
             } else if (this.srcAccount !== value) {
               exist('account', value).then(res => {
-                if (res.code === 1) {
-                  if (res.data) {
-                    callback(new Error('帐号已存在'))
-                  } else {
-                    callback()
-                  }
+                if (res.data) {
+                  callback(new Error('帐号已存在'))
+                } else {
+                  callback()
                 }
-              })
+              }).catch(() => {})
             } else {
               callback()
             }
@@ -104,14 +103,12 @@
               callback(new Error('请输入正确的手机号码'))
             } else if (this.srcPhoneNumber !== value) {
               exist('phone_number', value).then(res => {
-                if (res.code === 1) {
-                  if (res.data) {
-                    callback(new Error('该手机号码已被注册'))
-                  } else {
-                    callback()
-                  }
+                if (res.data) {
+                  callback(new Error('该手机号码已被注册'))
+                } else {
+                  callback()
                 }
-              })
+              }).catch(() => {})
             } else {
               callback()
             }
@@ -137,20 +134,19 @@
       },
       methods: {
         init() {
-          getEmployeeById(this.id).then(res => {
-            if (res.code === 1) {
-              this.ruleForm = res.data  // 包含id
-              this.ruleForm.password = ''
-              this.ruleForm.sex = res.data.sex === 0 ? '女' : '男'
-              this.ruleForm.role = res.data.role !== 0
-              this.srcAccount = res.data.account
-              this.srcPhoneNumber = res.data.phoneNumber
-            } else {
-              this.$message.error(res.msg)
-            }
+          getEmployeeByIdApi(this.id).then(res => {
+            this.ruleForm = res.data  // 包含id
+            this.ruleForm.password = ''
+            this.ruleForm.sex = res.data.sex === 0 ? '女' : '男'
+            this.ruleForm.role = res.data.role !== 0
+            this.srcAccount = res.data.account
+            this.srcPhoneNumber = res.data.phoneNumber
+          }).catch(error => {
+            this.$message.error(error.message)
           })
         },
         submitForm(formName) {
+          this.submitting = true
           this.$refs[formName].validate((valid) => {
             if (valid) {
               const params = {
@@ -159,15 +155,15 @@
                 sex: this.ruleForm.sex === '女' ? 0 : 1,
                 role: this.ruleForm.role ? 1 : 0
               }
-              editEmployee(params).then(res => {
-                if (res.code === 1) {
-                  window.parent.$message.success('修改成功')
-                  this.goBack()
-                } else {
-                  this.$message.error(`${res.msg}，修改失败`)
-                }
+              editEmployeeApi(params).then(res => {
+                window.parent.$message.success('修改成功')
+                this.goBack()
+              }).catch(error => {
+                this.$message.error(`${error.message}，修改失败`)
+                this.submitting = false
               })
             } else {
+              this.submitting = false
               return false
             }
           })
@@ -175,7 +171,7 @@
         goBack() {
           window.parent.menuHandle({
             id: '1',
-            url: '/backend/page/member/list.html',
+            url: '/backend/page/employee/list.html',
             name: '员工管理'
           },false)
         }

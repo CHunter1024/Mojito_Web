@@ -11,7 +11,7 @@
   <link rel="stylesheet" href="../../styles/page.css"/>
 </head>
 <body>
-  <div class="addBrand-container" id="member-add-app">
+  <div class="addBrand-container" id="employee-add-app">
     <div class="container">
       <el-form
         ref="ruleForm"
@@ -45,8 +45,8 @@
         <div class="subBox address">
           <el-form-item>
             <el-button @click="goBack">取消</el-button>
-            <el-button type="primary" @click="submitForm('ruleForm',false)">保存</el-button>
-            <el-button type="primary" class="continue" @click="submitForm('ruleForm',true)">保存并继续添加</el-button>
+            <el-button type="primary" @click="submitForm('ruleForm',false)" :disabled="submitting">保存</el-button>
+            <el-button type="primary" class="continue" @click="submitForm('ruleForm',true)" :disabled="submitting">保存并继续添加</el-button>
           </el-form-item>
         </div>
       </el-form>
@@ -60,10 +60,10 @@
   <script src="../../plugins/axios/axios.min.js"></script>
   <script src="../../js/request.js"></script>
   <script src="../../js/validate.js"></script>
-  <script src="../../api/member.js"></script>
+  <script src="../../api/employee.js"></script>
   <script>
     new Vue({
-      el: '#member-add-app',
+      el: '#employee-add-app',
       data() {
         return {
           ruleForm: {
@@ -73,7 +73,8 @@
             username: '',
             sex: '男',
             role: false
-          }
+          },
+          submitting: false
         }
       },
       computed: {
@@ -89,6 +90,7 @@
       created() {},
       methods: {
         submitForm(formName, st) {
+          this.submitting = true
           this.$refs[formName].validate((valid) => {
             if (valid) {
               const params = {
@@ -96,20 +98,21 @@
                 sex: this.ruleForm.sex === '女' ? 0 : 1,
                 role: this.ruleForm.role ? 1 : 0
               }
-              addEmployee(params).then(res => {
-                if (res.code === 1) {
-                  window.parent.$message.success("添加成功")
-                  if (!st) {
-                    this.goBack()
-                  } else {
-                    this.$refs[formName].resetFields()
-                  }
+              addEmployeeApi(params).then(res => {
+                window.parent.$message.success("添加成功")
+                if (!st) {
+                  this.goBack()
                 } else {
-                  this.$message.error(`${res.msg}，添加失败`)
+                  this.$refs[formName].resetFields()
                 }
+                this.submitting = false
+              }).catch(error => {
+                this.$message.error(`${error.message}，添加失败`)
+                this.submitting = false
               })
             } else {
               console.log('error submit!')
+              this.submitting = false
               return false
             }
           })
@@ -117,7 +120,7 @@
         goBack() {
           window.parent.menuHandle({
             id: '1',
-            url: '/backend/page/member/list.html',
+            url: '/backend/page/employee/list.html',
             name: '员工管理'
           },false)
         }

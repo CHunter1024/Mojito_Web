@@ -1,34 +1,45 @@
+const categoryApi = '/category'
+
 // 分页查询分类信息
-const getCategoryPage = (params) => {
+const getCategoryPageApi = (params) => {
   return $axios({
-    url: '/category/page',
+    url: `${categoryApi}/page`,
     method: 'get',
     params
   })
 }
 
 // 删除分类
-const deleteCategory = (id) => {
+const deleteCategoryApi = (id) => {
   return $axios({
-    url: `/category/${id}`,
+    url: `${categoryApi}/${id}`,
     method: 'delete',
   })
 }
 
-// 修改分类
-const editCategory = (data) => {
+// 修改分类信息
+const editCategoryApi = (data) => {
   return $axios({
-    url: '/category',
+    url: `${categoryApi}`,
     method: 'put',
     data
   })
 }
 
 // 新增分类
-const addCategory = (data) => {
+const addCategoryApi = (data) => {
   return $axios({
-    url: '/category',
+    url: `${categoryApi}`,
     method: 'post',
     data
+  })
+}
+
+// 条件查询分类信息
+const getCategoryListApi = (params) => {
+  return $axios({
+    url: '/category/list',
+    method: 'get',
+    params
   })
 }
