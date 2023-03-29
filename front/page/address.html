@@ -81,14 +81,14 @@
         changeDefault(item) {
           const params = {
             id: item.id,
-            isDefault: item.isDefault ? 0 : 1
+            isDefault: !item.isDefault
           }
           editAddressApi(params).then(res => {
             // 如果是设置为默认地址，需要先将之前的默认地址改为非默认地址
             if (params.isDefault) {
               for (const address of this.addressList) {
-                if (address.isDefault === 1) {
-                  address.isDefault = 0
+                if (address.isDefault) {
+                  address.isDefault = false
                   break
                 }
               }
